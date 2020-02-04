@@ -11,36 +11,35 @@ cat_path = '/home/llayer/Downloads/FinalCatalogue/'
 
 def dayls(date, starttime, endtime, station):
     
-        
-        # String for the day file location 
-        day_file = day_file_path + date + "/" + station + "/" + station.replace(".","_") \
-                    + "." + date.replace("/", "") + starttime[0:2] + "0000.day"
+    # String for the day file location 
+    day_file = day_file_path + date + "/" + station + "/" + station.replace(".","_") \
+                + "." + date.replace("/", "") + starttime[0:2] + "0000.day"
 
-        if os.path.isfile(day_file) == False:
-            day_file = day_file_rec_path + date + "/" + station + "/" + station.replace(".","_") \
-                    + "." + date.replace("/", "") + starttime[0:2] + "0000.day"
+    if os.path.isfile(day_file) == False:
+        day_file = day_file_rec_path + date + "/" + station + "/" + station.replace(".","_") \
+                + "." + date.replace("/", "") + starttime[0:2] + "0000.day"
 
-        #Output dir
-        outfile_path = out_path + date 
-        if not os.path.exists(outfile_path):
-            os.makedirs(outfile_path)
+    #Output dir
+    outfile_path = out_path + date 
+    if not os.path.exists(outfile_path):
+        os.makedirs(outfile_path)
 
-        outfile = outfile_path + "/" + starttime.replace(":", "") + "_" + endtime.replace(":", "") + "_" + \
-                    station.replace(".","_") + ".ascii"
+    outfile = outfile_path + "/" + starttime.replace(":", "") + "_" + endtime.replace(":", "") + "_" + \
+                station.replace(".","_") + ".ascii"
 
-        dayls_command = "dayls -d -s " + date + "." + starttime + " -e " + date  + "." + endtime + " " + \
-                        day_file + " " + outfile 
-        print dayls_command
+    dayls_command = "dayls -d -s " + date + "." + starttime + " -e " + date  + "." + endtime + " " + \
+                    day_file + " " + outfile 
+    print dayls_command
 
-        try:
-            os.system(dayls_command)
-        except:
-            print
-            print "Problems with file:"
-            print day_file
-            print
-        
-        return outfile
+    try:
+        os.system(dayls_command)
+    except:
+        print
+        print "Problems with file:"
+        print day_file
+        print
+    
+    return outfile
         
             
 def to_ascii(data):
@@ -95,13 +94,14 @@ def convert_all():
     import glob
     cats = glob.glob(cat_path + "*.ctg")
     for cat in cats:
-    data = pd.read_csv(cat, header = None)
-    data = data[0]
-    data = data.drop_duplicates()
-    to_ascii(data)
+        data = pd.read_csv(cat, header = None)
+        data = data[0]
+        data = data.drop_duplicates()
+        to_ascii(data)
     
     
-test()
+#test()
+convert_all()
     
     
     
