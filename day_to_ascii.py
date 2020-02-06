@@ -4,9 +4,10 @@ import datetime
 
 duration = 60
 channels = ["STRA.EHE"] #, "STRA.EHN", "STRA.EHZ", ]
+cat_path = '/home/llayer/Downloads/FinalCatalogue/'
 day_file_path = "/home/llayer/Data/Stromboli/day/"
 day_file_rec_path = "/home/llayer/Data/Recovered/day/"
-out_path = "/home/llayer/Data/ascii_test/"
+out_path = "/home/llayer/Data/ascii/"
 tot_samples = 3050
 
 corr_files = 0
@@ -83,7 +84,7 @@ def to_ascii(time, ms):
     for channel in channels:
 
         outfile_path = ''
-        if int(endtime[0:2]) != int(starttime[0:2]) :
+        if (int(endtime[0:2]) != int(starttime[0:2])) and (endtime[-2:] != '00'):
 
             switch_time = endtime[0:2] + ":00:00"
 
@@ -110,7 +111,7 @@ def to_ascii(time, ms):
             corr_files += 1
         
         header = slist_header( channel.split('.')[1], nsamples, date.replace('/', '-') + 'T' + 
-                              starttime + '.' + ms + '000' )
+                              starttime + '.' + '000000' ) #+ ms + '000' )
         
         #print( "echo \"" + header + "\" | cat - " + outfile_path + " > temp" ) # && mv temp " + outfile_path )
         os.system("echo \"" + header + "\" | cat - " + outfile_path + " | sponge " + outfile_path )
@@ -128,8 +129,7 @@ def read_ctg(filepath):
 
 def test():
     
-    cat_path = '/home/llayer/Downloads/FinalCatalogue/'
-    filepath = cat_path + 'STRA_LHE.20190515.ctg'
+    filepath = cat_path + 'STRA_LHE.20190701.ctg'
     data = read_ctg( filepath )
     times = [ to_ascii(x,y) for x, y in zip(data['time'], data['ms'])]
     print( 'Corrupted files:', corr_files) 
@@ -139,13 +139,13 @@ def convert_all():
     import glob
     cats = glob.glob(cat_path + "*.ctg")
     for cat in cats:
-        data = reat_ctg( cat )
+        data = read_ctg( cat )
         times = [ to_ascii(x,y) for x, y in zip(data['time'], data['ms'])]
         print( 'Corrupted files:', corr_files) 
     
     
-test()
-#convert_all()
+#test()
+convert_all()
     
     
     
