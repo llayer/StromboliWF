@@ -2,13 +2,14 @@ import pandas as pd
 import os
 import datetime
 
-duration = 60
+duration = 30
 channels = ["STRA.EHE"] #, "STRA.EHN", "STRA.EHZ", ]
 cat_path = '/home/llayer/Downloads/FinalCatalogue/'
 day_file_path = "/home/llayer/Data/Stromboli/day/"
 day_file_rec_path = "/home/llayer/Data/Recovered/day/"
-out_path = "/home/llayer/Data/ascii/"
-tot_samples = 3050
+out_path = "/home/llayer/Data/ascii_30/"
+sps = 50
+tot_samples = duration * sps + 50
 
 corr_files = 0
 
