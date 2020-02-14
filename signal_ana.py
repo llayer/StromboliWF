@@ -32,7 +32,7 @@ def load_signals(path, wf_len = 259):
 def exclude_days(df, days):
     
     for day in days:
-        mask = ((df['time'] < day) | (df['time'] > day))
+        mask = ((df['time'] < day[0]) | (df['time'] > day[1]))
         df = df.loc[mask]
     return df
 
@@ -88,6 +88,8 @@ def run_som(features, size, niter = 10000, sigma=0.3, learning_rate=.5, pca=True
     som = MiniSom(size, size, features.shape[1], sigma=sigma, learning_rate=learning_rate, random_seed = random_seed) 
     if pca == True:
         som.pca_weights_init(features)
+    else:
+        som.random_weights_init(features)
     
     if plot_error == True:
         
@@ -98,8 +100,9 @@ def run_som(features, size, niter = 10000, sigma=0.3, learning_rate=.5, pca=True
             percent = 100*(i+1)/niter
             rand_i = np.random.randint(len(features)) # This corresponds to train_random() method.
             som.update(features[rand_i], som.winner(features[rand_i]), i, niter)
-            if (i+1) % 100 == 0:
+            if (i+1) % 1000 == 0:
                 q_error.append(som.quantization_error(features))
+                print( q_error[-1] )
                 t_error.append(som.topographic_error(features))
                 iter_x.append(i)
         
@@ -208,16 +211,24 @@ def get_erruption_time():
     return err1, err2
     
     
-def plot_evo(df, som, size):
+def plot_evo(df, som, size, wf = True, lpc = True, amp = True):
     
-    def to_cluster(waveform):
-        return som.winner(waveform)
+    def to_cluster(waveform, lpc_coeff, amplitude):
+        
+        feat = []
+        if wf == True:
+            feat += list(waveform)
+        if lpc == True:
+            feat += list(lpc_coeff)
+        if amp == True:
+            feat += list(amplitude)
+        return som.winner(np.array(feat))
 
     def to_index(cluster):
         index = size * cluster[0] + cluster[1]
         return index
     
-    df['cluster'] = df['waveform'].apply(to_cluster)
+    df['cluster'] = df.apply(lambda x: to_cluster(x['waveform'], x['lpc_coeff'], x['amplitude']), axis=1)
     df['cluster_index'] = df['cluster'].apply(to_index)
     df['time_int'] = df.time.astype(np.int64)
 
