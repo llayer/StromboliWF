@@ -6,7 +6,10 @@ from minisom import MiniSom
 from matplotlib import cm
 from datetime import datetime, date
 from scipy.stats import kde
-
+import skopt
+from skopt.utils import use_named_args
+from skopt import gp_minimize
+import math
 
 
 def load_signals(path, wf_len = 259):
@@ -261,5 +264,65 @@ def plot_evo(df, som, size, wf = True, lpc = True, amp = True):
 
     
     plt.show()
+
+def optimize( dimensions, initial_param, features, size, num_calls=12, pca = False, random_seed = 1): 
+
+    prior_values = []
+    prior_names = []
+    for var in dimensions:
+        name = var.name
+        print( name )
+        prior_names.append(name)
+        prior_values.append(initial_param[name])
+
+    global num_skopt_call
+    num_skopt_call = 0
+    errors = []
+
+    @use_named_args(dimensions)
+    def fitness(**p): 
+
+        global num_skopt_call
+
+        print('\n \t ::: {} SKOPT CALL ::: \n'.format(num_skopt_call+1))
+        print(p)
+
+        # Train som
+        som = run_som(features, size, niter = int(p['niter']), sigma=p['sigma'], learning_rate=p['learning_rate'], 
+              pca=pca, random_seed = random_seed)
+        
+        q_error = som.quantization_error(features)
+        t_error = som.topographic_error(features)
+        errors.append((num_skopt_call, q_error, t_error))
+        
+        def get_score(q_error, t_error):
+            
+            return math.sqrt(q_error * q_error + t_error * t_error)
+        
+        score = get_score(q_error, t_error)
+        print( q_error )
+        print( t_error )
+        print( score )
+
+        num_skopt_call += 1
+
+        return score
+
+    search_result = gp_minimize( func = fitness, dimensions = dimensions,
+                                 acq_func = 'EI', # Expected Improvement
+                                 n_calls = num_calls, x0 = prior_values )
+
+    params = pd.DataFrame(search_result['x_iters'])
+    params.columns = [*prior_names]
+    params = params.rename_axis('call').reset_index()
+    scores = pd.DataFrame(search_result['func_vals'])
+    scores.columns = ['score']
+    result = pd.concat([params, scores], axis=1)
+    result = result.sort_values(by=['score'])
+    errors_frame = pd.DataFrame(errors, columns = ['call', 'q_error', 't_error'])
+    result = pd.merge(result, errors_frame, on=['call'])   
     
+    return result
+
+
     
