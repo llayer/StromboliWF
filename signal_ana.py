@@ -32,17 +32,17 @@ def load_signals(path, wf_len = 259):
 def exclude_days(df, days):
     
     for day in days:
-        mask = df['time'] != day
+        mask = ((df['time'] < day) | (df['time'] > day))
         df = df.loc[mask]
     return df
 
 
 def test_period(df):
     
-    period1 = ('2019-06-09', '2019-06-11')
-    period2 = ('2019-06-24', '2019-06-26')
+    period1 = ('2019-06-09', '2019-06-12')
+    period2 = ('2019-06-24', '2019-06-27')
     
-    mask = ((df['time'] >= period1[0]) & (df['time'] <= period1[1])) |((df['time'] >= period2[0]) & (df['time'] <= period2[1]))
+    mask = ((df['time'] >= period1[0]) & (df['time'] < period1[1])) |((df['time'] >= period2[0]) & (df['time'] < period2[1]))
   
     return df.loc[mask]
 
@@ -83,12 +83,39 @@ def get_features(df, wf=True, lpc=False, amp=False):
     return features.to_numpy()
     
     
-def get_som(features, size, niter = 10000, sigma=0.3, learning_rate=.5, pca=True, random_seed = 1):
+def run_som(features, size, niter = 10000, sigma=0.3, learning_rate=.5, pca=True, plot_error = False, random_seed = 1):
     
     som = MiniSom(size, size, features.shape[1], sigma=sigma, learning_rate=learning_rate, random_seed = random_seed) 
     if pca == True:
         som.pca_weights_init(features)
-    som.train_random(features, niter) 
+    
+    if plot_error == True:
+        
+        q_error = []
+        t_error = []
+        iter_x = []
+        for i in range(niter):
+            percent = 100*(i+1)/niter
+            rand_i = np.random.randint(len(features)) # This corresponds to train_random() method.
+            som.update(features[rand_i], som.winner(features[rand_i]), i, niter)
+            if (i+1) % 100 == 0:
+                q_error.append(som.quantization_error(features))
+                t_error.append(som.topographic_error(features))
+                iter_x.append(i)
+        
+        plt.plot(iter_x, q_error)
+        plt.ylabel('quantization error')
+        plt.xlabel('iteration index')
+        plt.show()
+        
+        plt.plot(iter_x, t_error)
+        plt.ylabel('topo error')
+        plt.xlabel('iteration index')
+        plt.show()
+
+    else:
+        som.train_random(features, niter) 
+    
     return som
     
     
@@ -217,9 +244,10 @@ def plot_evo(df, som, size):
     err1, err2 = get_erruption_time()
     fig, ax = plt.subplots(figsize=(14,10))
     plt.pcolormesh(xi, yi, zi.reshape(xi.shape))
-    ax.set_xticklabels([datetime.fromtimestamp(ts / 1e9).strftime('%D') for ts in ax.get_xticks()])
     ax.axvline(x=err1, color='r', linestyle='dashed', linewidth=2)
     ax.axvline(x=err2, color='r', linestyle='dashed', linewidth=2)
+    ax.set_xticklabels([datetime.fromtimestamp(ts / 1e9).strftime('%D') for ts in ax.get_xticks()])
+
     
     plt.show()
     
