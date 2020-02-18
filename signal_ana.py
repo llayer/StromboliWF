@@ -273,11 +273,11 @@ def plot_evo(df, col, n_clusters):
     plt.show()
 
 
-def plot_hist2d(df, col, n_clusters):
+def plot_hist2d(df, col, n_clusters, timebins=200):
 
     x, y = df['time_int'], df[col]
 
-    heatmap, xedges, yedges = np.histogram2d(x, y, bins=(200, n_clusters))
+    heatmap, xedges, yedges = np.histogram2d(x, y, bins=(timebins, n_clusters))
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]+1]
     
     # 2d histo
@@ -414,7 +414,7 @@ def elbow(max_clusters, features):
     plt.show()
 
 
-def kmeans_som(som, features, size_x, size_y, n_clusters=4, run_elbow = False):
+def kmeans_som(som, features, size_x, size_y, n_clusters=4, run_elbow = False, max_cls=10):
     
     weights = som.get_weights()
     weights = weights.reshape(size_x * size_y, weights.shape[2])
@@ -455,7 +455,7 @@ def kmeans_som(som, features, size_x, size_y, n_clusters=4, run_elbow = False):
         return pred_weights
         
     else:
-        elbow(10, weights)
+        elbow(max_cls, weights)
     
     
 def som_to_kmeans_cluster(df, preds):
