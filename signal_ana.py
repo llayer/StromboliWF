@@ -72,22 +72,21 @@ def plot_freq(df):
     
     
     
-def get_features(df, wf=True, lpc=False, amp=False):
-    
-    def final_input(waveform, lpc_coeff, amplitude):
-    
-        feat = []
-        if wf == True:
-            feat += list(waveform)
-        if lpc == True:
-            feat += list(lpc_coeff)
-        if amp == True:
-            feat += list(amplitude)
-        return feat
+def get_features(df, col, scale_global = True):
         
-    features = df.apply(lambda x: final_input(x['waveform'], x['lpc_coeff'], x['amplitude']), axis=1)#.to_numpy()#.values
-    features = pd.DataFrame(features.tolist())
-    return features.to_numpy()
+    features = np.array(df[col].tolist())
+    
+    if scale_global == True:
+        
+        shape = features.shape
+        features_flat = features.flatten()
+        mean = np.mean(features_flat)
+        std = np.std(features_flat)
+        features_flat = features_flat - mean
+        features_flat /= std
+        features = features_flat.reshape(shape[0], shape[1])
+    
+    return features
     
     
 def run_som(features, size_x, xize_y, niter = 10000, sigma=0.3, learning_rate=.5, pca=True, plot_error = False, random_seed = 1):
@@ -275,6 +274,7 @@ def plot_evo(df, col, n_clusters):
 
 def plot_hist2d(df, col, n_clusters, timebins=200):
 
+    df['time_int'] = df.time.astype(np.int64)
     x, y = df['time_int'], df[col]
 
     heatmap, xedges, yedges = np.histogram2d(x, y, bins=(timebins, n_clusters))
@@ -481,7 +481,7 @@ def plot_kmeans_tsne(df, col, n_clusters, plot_avg = True):
     for i in range(n_clusters):
 
         cls = df[df[col]==i]
-        plt.scatter(cls['tsne_x'], cls['tsne_y'], c = colors[i], s = 5)
+        plt.scatter(cls['tsne_x'], cls['tsne_y'], c = colors[i], s = 1)
     
     plt.show()
     
