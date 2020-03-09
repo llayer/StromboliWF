@@ -397,7 +397,7 @@ def run_kmeans(features, n_clusters=4):
     
     kmeans = KMeans(n_clusters=n_clusters, random_state=0)
     preds = kmeans.fit_predict(features)
-    return preds
+    return preds, kmeans.cluster_centers_
 
 
 def elbow(max_clusters, features):
