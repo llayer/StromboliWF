@@ -108,10 +108,11 @@ def run_som(features, size_x, xize_y, niter = 10000, sigma=0.3, learning_rate=.5
             som.update(features[rand_i], som.winner(features[rand_i]), i, niter)
             if (i+1) % 1000 == 0:
                 q_error.append(som.quantization_error(features))
-                print( q_error[-1] )
+                #print( q_error[-1] )
                 t_error.append(som.topographic_error(features))
                 iter_x.append(i)
         
+        """
         plt.plot(iter_x, q_error)
         plt.ylabel('quantization error')
         plt.xlabel('iteration index')
@@ -121,11 +122,13 @@ def run_som(features, size_x, xize_y, niter = 10000, sigma=0.3, learning_rate=.5
         plt.ylabel('topo error')
         plt.xlabel('iteration index')
         plt.show()
+        """
+        
+        return som, iter_x, q_error, t_error
 
     else:
         som.train_random(features, niter) 
-    
-    return som
+        return som
     
     
 def plot_waveforms(features, som, size_x, size_y):
@@ -452,7 +455,7 @@ def kmeans_som(som, features, size_x, size_y, n_clusters=4, run_elbow = False, m
 
         plt.show()
         
-        return pred_weights
+        return pred_weights, kmeans.cluster_centers_
         
     else:
         elbow(max_cls, weights)
