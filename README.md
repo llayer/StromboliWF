@@ -2,10 +2,10 @@
 Unsupervised analysis of the time evolution of clusters of VLP signal waveforms (timeseries) from the Stromboli volcano. 
 
 ## Cutting of the signals
-The selected signals can be cutted with [day_to_ascii.py](https://github.com/llayer/StromboliWF/blob/master/day_to_ascii.py).
+The selected signals stored in day files can be cutted with [day_to_ascii.py](https://github.com/llayer/StromboliWF/blob/master/day_to_ascii.py).
 
 ## Feature extraction
-Filtering, decimating, LPC and amplitude parametrization is done with the script [ascii_to_param.py](https://github.com/llayer/StromboliWF/blob/master/ascii_to_param.py). A visualization for an exemplary signal can be found in [parametrization.ipynb](https://github.com/llayer/StromboliWF/blob/master/parametrization.ipynb).
+Filtering, decimating, LPC and amplitude parametrization of the created ascii files is done with the script [ascii_to_param.py](https://github.com/llayer/StromboliWF/blob/master/ascii_to_param.py). A visualization for an exemplary signal can be found in [parametrization.ipynb](https://github.com/llayer/StromboliWF/blob/master/parametrization.ipynb).
 
 ## Autoencoders
 The script [autoencoder.ipynb](https://github.com/llayer/StromboliWF/blob/master/autoencoder.ipynb) implements autoencoders and can be run on Google Colab.
