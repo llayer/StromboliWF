@@ -16,19 +16,20 @@ from sklearn.cluster import KMeans
 from random import randint
 
 
-def load_signals(path, wf_len = 259):
+def load_signals(path, check_dim = True):
     
     df = pd.read_hdf(path)
     
-    def check_wf(wf):
-        if len(wf) != wf_len:
-            return 0
-        else:
-            return 1  
+    if check_dim == True:
+        def check_wf(wf):
+            if len(wf) != 259:
+                return 0
+            else:
+                return 1  
         
-    df['accept_signal'] = df['waveform'].apply(check_wf)
-    df = df[df['accept_signal']>0]
-    df = df.drop(['accept_signal'], axis=1)
+        df['accept_signal'] = df['waveform'].apply(check_wf)
+        df = df[df['accept_signal']>0]
+        df = df.drop(['accept_signal'], axis=1)
     
     df.time = df.time.astype(str)
     df.time = pd.to_datetime(df['time'])

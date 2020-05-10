@@ -6,13 +6,11 @@ from obspy import read
 import librosa
 import glob
 
-in_path = "/home/llayer/Data/ascii_30/"
-out_path = "/home/llayer/Data/Input/"
+out_path = "data/"
 sps = 50
-ascii_files = glob.glob(in_path + "*/*/*/*.ascii")
 
 
-def param_amplitude(data):
+def param_amplitude(data, normed = True):
     
     start = 0
     end = sps
@@ -29,12 +27,15 @@ def param_amplitude(data):
         start = end
         end += sps
         n_sec +=1
-        
-    amps_normed = []
-    for amp in amplitudes:
-        amps_normed.append( (amp * n_sec) / sum(amplitudes) )
-        
-    return amps_normed
+    
+    if normed == True:
+        amps_normed = []
+        for amp in amplitudes:
+            amps_normed.append( (amp * n_sec) / sum(amplitudes) )
+
+        return amps_normed
+    else:
+        return amplitudes
 
 
 def lpc(data, window = 256, overlap = 128, order=6):
@@ -67,7 +68,30 @@ def filter_sample(tr, factor=6):
     return tr_new.data
     
     
-def parametrization(file, verbose=0):
+def parametrization_infra(file, verbose=0):
+    
+    st = read(file)
+    tr = st[0]
+    
+    if len(tr.data) < 1:
+        return None
+    #print(tr.data)
+
+    # LPC analysis
+    lpc_coeff = lpc(tr.data.astype(float))
+    lpc_coeff = np.concatenate(lpc_coeff).ravel()
+    if verbose > 0:
+            print( len(lpc_coeff) )
+
+    # Amplitude parametrization
+    amplitude = param_amplitude(tr.data, normed=False)
+    if verbose > 0:
+            print( len(amplitude) )
+    
+    return {'time': tr.stats.starttime, 'lpc_coeff':lpc_coeff, 'amplitude':amplitude}
+
+
+def parametrization_seismic(file, verbose=0):
     
     st = read(file)
     tr = st[0]
@@ -102,22 +126,33 @@ def parametrization(file, verbose=0):
 def test(iFile = 150):
     
     print('Start')
-    features = parametrization(ascii_files[iFile], verbose=1)
+    features = parametrization_seismic(ascii_files[iFile], verbose=1)
     df = pd.DataFrame([features])
     print(df.head())
     df.to_hdf('test.h5', 'frame')
     
 
-def param_all():
+def param_all(signal):
     
     events = []
     corr_files = 0
+    if signal == 'seismic':
+        in_path = "data/signal_30s/"
+        ascii_files = glob.glob(in_path + "*/*/*/*.ascii")
+    else:
+        in_path = "data/MIC-ASCII/"
+        ascii_files = glob.glob(in_path + "*/*.ascii")
+
+    print( ascii_files )
     for counter, file in enumerate(ascii_files):
-        
+        features = parametrization_infra(file)
         if counter%100 == 0:
             print( counter )
         try:
-            features = parametrization(file)
+            if signal == 'seismic':
+                features = parametrization_seismic(file)
+            else:
+                features = parametrization_infra(file)
             if features is not None:
                 events.append(features)
             else:
@@ -131,12 +166,12 @@ def param_all():
 
     df = pd.DataFrame(events)
     print( df.head() )
-    df.to_hdf(out_path + 'features_30.h5', 'frame') 
+    df.to_hdf('t.h5', 'frame') 
 
 #test()
 
-param_all()
-    
+#param_all('seismic')
+param_all('infra')   
     
     
     
